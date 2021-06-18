@@ -1,0 +1,116 @@
+---
+title: "Suclustering_analysis_CA_clusters"
+author: "Adrian Salas"
+date: "4/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We ran a subclustering analysis for the CA pyramidal cell populations (CA1 and CA3) separatedly, based on the asumption that the expression pattern for the gold standard markers used for annotation are not uniformely distributed in each respective cluster.
+
+Loading the environment where the data was stored:
+```{r}
+load("~/Documents/Bioinformatic_Analysis/R_workspaces_sc/Base_Markdowns.RData", verbose = T)
+```
+
+Load required libraries
+```{r}
+library(dplyr)
+library(RaceID)
+```
+
+Load environment where the previous analysis was saved.
+```{r}
+load("~/Documents/Bioinformatic_Analysis/R_workspaces_sc/Base_Markdowns.RData")
+```
+
+
+Extract the cells that belong to the specific cluster from the expression matrix. 
+```{r}
+cells_cl2 <- names(sc@cpart[sc@cpart == 2])
+prdata_cl2 <- prdata[ , which(names(prdata) %in% cells_cl2)] 
+# Check the dimensions
+dim(prdata_cl2)
+# Check the first 10 element of the matrix
+prdata_cl2[1:10,1:10]
+```
+
+
+## Run the filtering, dimensionality reduction and clustering with **RaceID** version 0.1.3.
+
+Initialize the "sc" object
+```{r}
+sc <- SCseq(prdata_cl2)
+```
+
+
+Filter the cells with at least 'mintotal' number of  total transcripts
+```{r}
+sc <- filterdata(sc, 
+                 mintotal     =  3000, 
+                 minexpr      =  5, 
+                 minnumber    =  1,
+                 LBatch       =  NULL, 
+                 knn          =  10, 
+                 CGenes       =  c("Mki67", "Pcna"), 
+                 FGenes       =  c("Kcnq1ot1"),
+                 ccor         =  0.4,
+                 bmode        =  "RaceID")
+```
+
+Compute cell distances. Here we use logpearson distance because we expect the clustering be driven by differences mainly in lowly expressed genes based on the fact the pearson distance was not able to resolve the "heterogeneity" in the initial analysis. 
+```{r}
+sc <- compdist(sc, 
+               metric        =  "logpearson", 
+               FSelect       =  T, 
+               knn           =  NULL)
+```
+
+Perform cells clustering. The "cln" parameter value is 2 because we hypothesize there are 2 cell populations based on maturation state.
+```{r}
+sc <- clustexp(sc, 
+               sat          =  TRUE, 
+               cln          =  2, 
+               clustnr      =  30,
+               bootnr       =  50, 
+               rseed        =  17000, 
+               FUNcluster   =  "kmedoids")
+```
+
+Perform dimensionality reduction using t-SNE representation
+```{r}
+sc <- comptsne(sc, initial_cmd = TRUE, perplexity = 30, rseed = 15555)
+```
+
+k-nearest neighbour graph layout utilizing the Fruchterman-Rheingold algorithm
+```{r}
+sc <- compfr(sc,knn=10)
+
+```
+
+Run outlier identification
+```{r}
+sc <- findoutliers(sc, 
+                   probthr      =  1e-5, 
+                   outminc      =  3, 
+                   outlg        =  3,
+                   outdistquant = 0.95)
+```
+
+Plot t-SNE representation of the data
+```{r, echo=TRUE}
+plotmap(sc)
+```
+
+Plot the expression of the main marker used for cluster annotation ("Pou3f1" in the case of CA1 pyramidal cells)
+```{r, echo=TRUE}
+plotexpmap(sc, "Pou3f1", logsc = T)
+```
+
+Save the environment for the following analysis.
+```{r}
+save.image("~/Documents/Bioinformatic_Analysis/R_workspaces_sc/CA_Markdowns.RData")
+```
