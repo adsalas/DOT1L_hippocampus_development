@@ -1,7 +1,8 @@
 # For plotting the epigenetic profiles for the NPC48h treated with DMSO and EPZ:
 # 1. Download the files from the Gene Expression Omnibus database. Accession number GSE135318 
 #    (GSM4005219: NPC48h_DMSO_H3K79me2_rep2; GSM4005235: NPC48h_EPZ_H3K79me2_rep2). 
-# 2. Plot the H3K79me2 profiles for the selected genes using the pyGenomeTracks package (version 3.6). 
+# 2. Plot the H3K79me2 profiles for the selected genes using the pyGenomeTracks package (version 3.6).
+# 3. The required ".ini" files are available in the current directory together with the .gtf file used.
 
 
 # Run the following code in the terminal for generating the "tracks.ini" file.
@@ -11,7 +12,7 @@ make_tracks_file --trackFiles GSM4005219_NPC48h_DMSO_rep2_H3K79me2_merged.filter
 # NOTE: The file was used as the templete from which the other ".ini" files were made by changing some of the 
 #       parameters as required for each gene (they can be checked in the respective ".ini" files)
 
-# Running the plotting
+# For plotting the H3K79me2 profiles run in the terminal:
 pyGenomeTracks --tracks tracks_nfix.ini --region 8:84703151-84806230 -o nfix.pdf
 
 # The coordinates used for plotting the H3K79me2 profiles for each gene are as indicated below:
