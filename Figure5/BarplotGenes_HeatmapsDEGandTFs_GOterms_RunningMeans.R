@@ -331,15 +331,13 @@ trrustDB <- read.table("~/Downloads/trrust_rawdata.mouse.tsv", header = F)
 colnames(trrustDB) <- c("TF", "Target", "Interaction", "V4")
 # TF and co-factors DB 
 tf_interactions <- read.table("~/Downloads/mouse_tf_interactions.csv", header = T, sep = ",")
-TFs_both_DBs <- c(as.vector(unique(tf_interactions$Symbol1)), as.vector(unique(trrustDB$TF)))
-TFs_both_DBs <- unique(TFs_both_DBs)
 # Animal TF DB (Source: http://bioinfo.life.hust.edu.cn/AnimalTFDB/#!/download)
 tf_AnimalTFDB <- read.table("~/Downloads/Mus_musculus_TF.txt", header = F, sep = "", skip = 1)
 colnames(tf_AnimalTFDB) <- c("Species", "Symbol", "Ensembl", "Family", "Protein", "Entrez_ID")
-TF_BigDB <- c(TFs_both_DBs, as.vector(tf_AnimalTFDB$Symbol))
+
+# Combine the databases
+TF_BigDB <- c(as.vector(unique(tf_interactions$Symbol1)), as.vector(unique(trrustDB$TF)), as.vector(tf_AnimalTFDB$Symbol))
 TF_BigDB <- unique(TF_BigDB)
-
-
 
 # Remove the CortHem cluster 
 dim(DEG_DF)
